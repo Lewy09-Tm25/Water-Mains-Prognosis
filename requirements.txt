@@ -1,2 +1,4 @@
+kaleido
+pandas
 numpy
 plotly
