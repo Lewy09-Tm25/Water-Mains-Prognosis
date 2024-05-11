@@ -1,7 +1,8 @@
 import numpy as np
 
-from csp import (CSP, Employee, EmployeeTravelTimeConstraint, HourlyTask,
-                 SupervisorConstraint, Task, Timetable, WeatherConstraint)
+from scheduler.core import Employee, HourlyTask, Task, Timetable
+from csp import (CSP, EmployeeTravelTimeConstraint,
+                 SupervisorConstraint, WeatherConstraint)
 from plot import plot
 
 employees = [
