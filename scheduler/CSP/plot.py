@@ -1,10 +1,8 @@
 from datetime import date, datetime, time, timedelta
 
 import numpy as np
-import plotly.figure_factory as ff
 import plotly
-
-
+import plotly.figure_factory as ff
 from csp import Employee
 
 
@@ -48,5 +46,5 @@ def plot(schedule: np.ndarray, employees: list[Employee]) -> None:
             (next_monday + timedelta(days=6)).strftime("%Y-%m-%d"),
         ],
     )
-    with open('out.svg', 'wb') as out:
-        out.write(fig.to_image(format='svg'))
+    with open("out.svg", "wb") as out:
+        out.write(fig.to_image(format="svg"))

@@ -1,10 +1,9 @@
-from typing import Literal, Generator
-from dataclasses import dataclass, field
 from abc import ABC, abstractmethod
+from dataclasses import dataclass, field
 from itertools import count
+from typing import Generator, Literal
 
 import numpy as np
-
 
 DAYS_INDICES = {
     "Monday": 0,

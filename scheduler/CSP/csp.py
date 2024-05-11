@@ -1,7 +1,9 @@
 from dataclasses import dataclass
 from typing import NoReturn, Union
-from scheduler.core import Constraint, Timetable, Employee, HourlyTask, Task
+
 import numpy as np
+
+from scheduler.core import Constraint, Employee, HourlyTask, Task, Timetable
 
 
 @dataclass
