@@ -46,5 +46,6 @@ def plot(schedule: np.ndarray, employees: list[Employee]) -> None:
             (next_monday + timedelta(days=6)).strftime("%Y-%m-%d"),
         ],
     )
-    with open("out.svg", "wb") as out:
-        out.write(fig.to_image(format="svg"))
+    fig.show()
+    # with open("out.svg", "wb") as out:
+    #     out.write(fig.to_image(format="svg"))

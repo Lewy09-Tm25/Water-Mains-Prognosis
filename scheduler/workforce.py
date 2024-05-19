@@ -1,5 +1,6 @@
 from scheduler.core import Employee, HourlyTask, Task
 
+
 employees = [
     Employee(
         name="Alice",

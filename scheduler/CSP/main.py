@@ -1,7 +1,7 @@
 import numpy as np
 from csp import (
     CSP,
-    EmployeeTravelTimeConstraint,
+    TravelConstraint,
     SupervisorConstraint,
     WeatherConstraint,
 )
@@ -16,7 +16,7 @@ bad_weather_on_monday[0] = np.ones(25)
 constraints = [
     WeatherConstraint(table=Timetable(array=bad_weather_on_monday)),
     SupervisorConstraint(employees=employees),
-    EmployeeTravelTimeConstraint(),
+    TravelConstraint(employees=employees),
 ]
 
 

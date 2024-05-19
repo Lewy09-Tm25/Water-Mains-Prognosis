@@ -24,7 +24,6 @@ class SupervisorConstraint(Constraint):
     """
     Workers may only work when a supervisor is on site.
     """
-
     employees: list[Employee]
 
     def __post_init__(self) -> None:
@@ -48,28 +47,27 @@ class SupervisorConstraint(Constraint):
 
 
 @dataclass
-class EmployeeTravelTimeConstraint(Constraint):
+class TravelConstraint(Constraint):
     """
-    Workers need at least 1 hour to travel to a new repairment site.
+    Workers need at least one hour to travel between sites.
     """
+    employees: list[Employee]
+
+    def __post_init__(self) -> None:
+        self._supervisor_indices = [
+            idx for idx, emp in enumerate(self.employees) if emp.role == "Supervisor"
+        ]
 
     def eval(self, **kwargs) -> bool:
+        day, hour, emp_idx = kwargs['slot'][:3]
+        task_id = kwargs['task'].task.id
+
+        tasks = kwargs['schedule'].array[day, hour-1, emp_idx]
+        for task_idx, task in enumerate(tasks):
+            if task_idx != task_id and task == 1:
+                return True
+
         return False
-        # day, hour, emp_idx = kwargs['slot'][:3]
-        # task_id = kwargs['task'].task.id
-
-        # if hour - 1 < 0:
-        #   day = day - 1
-        # else:
-        #   hour = hour - 1
-
-        # try:
-        #   scheduled_for_other_tasks = kwargs['schedule'].array[day, hour, emp_idx, ~task_id]
-        #   if type(scheduled_for_other_tasks) == np.float64:
-        #     return bool(scheduled_for_other_tasks)
-        #   return 1 not in kwargs['schedule'].array[day, hour, emp_idx, ~task_id]
-        # except IndexError:
-        #   return False
 
 
 @dataclass
@@ -77,7 +75,7 @@ class CSP:
     time_table: Timetable
     constraints: list[Constraint]
 
-    def is_consistent(self, task, schedule):
+    def is_consistent(self, schedule: Timetable) -> bool:
         return len(np.nonzero(np.sum(schedule.array, axis=-1))) > 0
 
     def backtracking(
@@ -93,7 +91,7 @@ class CSP:
 
         for slot in self.time_table.slots():
             # Check for consistency
-            if not self.is_consistent(task, schedule):
+            if not self.is_consistent(schedule):
                 continue
 
             # Check for constraints
