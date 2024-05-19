@@ -2,4 +2,10 @@ pulp
 kaleido
 pandas
 numpy
+matplotlib
 plotly
+sklearn
+xgboost
+lightgbm
+lifelines
+xgbse
