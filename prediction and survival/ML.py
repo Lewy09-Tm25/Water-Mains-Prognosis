@@ -156,7 +156,7 @@ def prediction_filtering(x, y, xtest, ytest, model):
 if __name__ == "__main__":
 
     # Read data
-    dataset = read_datasets("../data/Water_Main_Prognosis.csv")
+    dataset = read_datasets("data/Water_Main_Prognosis.csv")
 
     # Use columns
     ml_data_cols = ['PRESSURE_ZONE', 'PIPE_SIZE', 'Shape__Length', 'Installation_Year', 'Break_Time',
