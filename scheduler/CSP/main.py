@@ -58,7 +58,7 @@ if __name__ == "__main__":
                 + timedelta(days=int(non_zero_idx[0]), hours=int(non_zero_idx[1])),
                 Finish=next_monday
                 + timedelta(days=int(non_zero_idx[0]), hours=int(non_zero_idx[1]) + 1),
-                Resource=f"Task {non_zero_idx[-1]}",
+                Resource="Segment {}".format(tasks[non_zero_idx[-1]].n_segment),
             )
             for non_zero_idx in zip(*np.nonzero(emp_schedule))
         ]

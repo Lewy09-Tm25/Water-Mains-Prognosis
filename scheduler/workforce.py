@@ -40,10 +40,10 @@ df = df.sort_values(by='Predicted condition', ascending=True)
 tasks = [
     Task(
         priority=10-row['Predicted condition'],  # The lower the score, the more urgent the repair
-        n_work_hours=random.randint(2, 10),  # TODO: time should depend on pipe segment length
-        n_segment=row['id_index']
+        n_work_hours=n_work_hours,  # TODO: time should depend on pipe segment length
+        n_segment=int(row['id_index'])
     )
-    for _, row in df[:4].iterrows()
+    for (_, row), n_work_hours in zip(df[:4].iterrows(), [2, 11, 3, 5])
 ]
 
 hourly_tasks = [HourlyTask(task) for task in tasks for i in range(task.n_work_hours)]

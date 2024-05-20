@@ -127,7 +127,7 @@ if __name__ == "__main__":
             Task='Entire Workforce',
             Start=next_monday + timedelta(days=int(row['Block'] // 24), hours=int(row['Block'] % 24)),
             Finish=next_monday + timedelta(days=int(row['Block'] // 24), hours=int(row['Block'] % 24 + 1)),
-            Resource=f"Task {row['Task']}",
+            Resource="Segment {}".format(tasks[row['Task']].n_segment),
         )
         for _, row in tasks_blocks.iterrows()
     ]
