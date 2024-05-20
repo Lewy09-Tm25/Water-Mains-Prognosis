@@ -1,3 +1,6 @@
+import random
+import pandas as pd
+from pathlib import Path
 from scheduler.core import Employee, HourlyTask, Task
 
 
@@ -30,27 +33,16 @@ employees = [
 ]
 
 
+df = pd.read_csv(Path(__file__).parent.parent / 'data' / 'csp_data.csv')
+df = df.sort_values(by='Predicted condition', ascending=True)
+
 tasks = [
     Task(
-        priority=8,  # = pipe condition score
-        n_work_hours=2,  # time depends on length of segment
-        n_segment=None,
-    ),
-    Task(
-        priority=4,  # = pipe condition score
-        n_work_hours=11,
-        n_segment=None,
-    ),
-    Task(
-        priority=2,  # = pipe condition score
-        n_work_hours=3,
-        n_segment=None,
-    ),
-    Task(
-        priority=1,  # = pipe condition score
-        n_work_hours=5,
-        n_segment=None,
-    ),
+        priority=10-row['Predicted condition'],  # The lower the score, the more urgent the repair
+        n_work_hours=random.randint(2, 10),  # TODO: time should depend on pipe segment length
+        n_segment=row['id_index']
+    )
+    for _, row in df[:4].iterrows()
 ]
 
 hourly_tasks = [HourlyTask(task) for task in tasks for i in range(task.n_work_hours)]
