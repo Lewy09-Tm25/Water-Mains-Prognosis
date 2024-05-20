@@ -2,7 +2,8 @@ import plotly.figure_factory as ff
 import pandas as pd
 from scheduler.workforce import tasks, employees
 from datetime import date, time, datetime, timedelta
-from pulp import LpProblem, LpMaximize, LpVariable, lpSum
+from pulp import LpProblem, LpMaximize, LpVariable, lpSum, PULP_CBC_CMD
+from time import perf_counter
 
 
 DAYS_INDICES = {
@@ -52,7 +53,7 @@ def plot(task_blocks_df: pd.DataFrame) -> None:
     fig.show()
 
 
-if __name__ == "__main__":
+def _run_scheduling_process():
     hours_of_day = [
         datetime.combine(date.today() + timedelta(days=day_delta), time(hour=hour_delta))
         for day_delta in range(7)
@@ -97,7 +98,7 @@ if __name__ == "__main__":
     for t in range(B):
         prob += lpSum(y[(i, t)] for i in range(n)) <= schedule_df['availability'][t]  # Max tasks per slot
 
-    prob.solve()
+    prob.solve(PULP_CBC_CMD(msg=False))
 
     tasks_blocks = pd.DataFrame(columns=['Task', 'Block'])
 
@@ -108,6 +109,22 @@ if __name__ == "__main__":
 
     tasks_blocks['Task'] = tasks_blocks['Task'].astype(int)
     tasks_blocks['Block'] = tasks_blocks['Block'].astype(int)
-    tasks_blocks = tasks_blocks.sort_values(by='Task')
 
+    return tasks_blocks
+
+
+if __name__ == "__main__":
+    # Execution time
+    # n_runs = 100
+    # total_time = 0.0
+    # for _ in range(n_runs):
+    #     start = perf_counter()
+    #     _ = _run_scheduling_process()  # Call the function to run the process
+    #     end = perf_counter()
+    #     total_time += (end - start)
+
+    # average_time = total_time / n_runs
+    # print(f"Average execution time over {n_runs} runs: {average_time:.6f} seconds")
+
+    tasks_blocks = _run_scheduling_process()
     plot(tasks_blocks)

@@ -6,6 +6,7 @@ from csp import (
     WeatherConstraint,
 )
 from plot import plot
+import time
 
 from scheduler.core import Timetable
 from scheduler.workforce import employees, hourly_tasks, tasks
@@ -19,11 +20,25 @@ constraints = [
     TravelConstraint(employees=employees),
 ]
 
-
-if __name__ == "__main__":
+def _run_scheduling_process():
     tt = Timetable.from_employee_list(employees=employees)
-
     csp = CSP(time_table=tt, constraints=constraints)
     result_schedule = csp.solve(hourly_tasks=hourly_tasks, tasks=tasks).array
+    return result_schedule
 
+
+if __name__ == "__main__":
+    # Execution time
+    # n_runs = 100
+    # total_time = 0.0
+    # for _ in range(n_runs):
+    #     start = time.perf_counter()
+    #     _ = _run_scheduling_process()  # Call the function to run the process
+    #     end = time.perf_counter()
+    #     total_time += (end - start)
+    #
+    # average_time = total_time / n_runs
+    # print(f"Average execution time over {n_runs} runs: {average_time:.6f} seconds")
+    #
+    result_schedule = _run_scheduling_process()
     plot(schedule=result_schedule, employees=employees)

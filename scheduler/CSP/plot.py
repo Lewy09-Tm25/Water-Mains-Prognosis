@@ -1,7 +1,6 @@
 from datetime import date, datetime, time, timedelta
 
 import numpy as np
-import plotly
 import plotly.figure_factory as ff
 from csp import Employee
 
