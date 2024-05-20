@@ -1,6 +1,8 @@
 # Water Main Prognosis
 An AI-driven project to simplify the preventative management of water main segments. We focus on two main components: prediction of health scores for pipe segments and the optimized scheduling of repairs.
 
+![demo network](demo_network.png)
+
 ## Project Organization
 
 Use Python version >= 3.8 and run `pip install -r requirements.txt`.
