@@ -17,20 +17,10 @@ def _get_scheduled_tasks() -> tuple[list, list]:
     return csp_scheduled_tasks, lp_scheduled_tasks
 
 
-def _generate_circle_points(center_lat, center_lon, radius_meters, num_points):
+def _generate_circle_points(center_lat: float, center_lon: float, radius_meters: int, num_points: int) -> list:
     """
     Generates a list of latitude/longitude points forming a circle.
-
-    Args:
-        center_lat: Latitude of the circle's center (in decimal degrees).
-        center_lon: Longitude of the circle's center (in decimal degrees).
-        radius_meters: Radius of the circle (in meters).
-        num_points: Desired number of points on the circle.
-
-    Returns:
-        A list of tuples, where each tuple represents a point's (latitude, longitude).
     """
-
     points = []
     for i in range(num_points):
         angle = 2 * math.pi * i / num_points  # Angle in radians
@@ -63,6 +53,8 @@ if __name__ == '__main__':
     worst_pipes = worst_pipes.sort_values(by='Predicted condition', ascending=True)['Unnamed: 0']
     worst_pipes_ids = list(worst_pipes[:4])
 
+    sa_pipes = pd.read_csv('../data/csp_data.csv')
+
     geo_points = _generate_circle_points(
         center_lat=center_lat,
         center_lon=center_lon,
@@ -78,14 +70,20 @@ if __name__ == '__main__':
     scatter_data = []
     for i, id_pipe in zip(range(len(geo_points) - 1), ids_of_prone_pipes):
         if id_pipe in worst_pipes_ids:
+            sa_record = sa_pipes[sa_pipes['id_index'] == id_pipe]
+            sa_25, sa_55, sa_85 = (
+                round(sa_record['25'], 4).values[0],
+                round(sa_record['55'], 4).values[0],
+                round(sa_record['85'], 4).values[0]
+            )
             csp_task = list(filter(lambda task: task['Resource'].split(' ')[-1] == str(id_pipe), csp_tasks))
             lp_task = list(filter(lambda task: task['Resource'].split(' ')[-1] == str(id_pipe), lp_tasks))
             csp_task = pd.DataFrame(csp_task).sort_values(by='Start')
             lp_task = pd.DataFrame(lp_task).sort_values(by='Start')
             csp_emps = ', '.join(list(csp_task['Task'].unique()))
-            csp_start = csp_task['Start'].iloc[0].strftime("%m/%d/%Y, %H:%M")
-            lp_start = lp_task['Start'].iloc[0].strftime("%m/%d/%Y, %H:%M")
-            hovertemplate=f'Segment ID: {id_pipe}<br>Predicted condition: %{{customdata}}<br><br>Scheduled for repair (CSP): {csp_start}<br>Workers: {csp_emps}<br><br>Scheduled for repair (LP): {lp_start}<br>Workers: Entire Workforce<extra></extra>'
+            csp_start = csp_task['Start'].iloc[0].strftime("%m/%d/%Y %H:%M")
+            lp_start = lp_task['Start'].iloc[0].strftime("%m/%d/%Y %H:%M")
+            hovertemplate=f'Segment ID: {id_pipe}<br><br>Predicted condition: %{{customdata}}<br><br>Survival probability (25 years): {sa_25}<br>Survival probability (55 years): {sa_55}<br>Survival probability (85 years): {sa_85}<br><br>Scheduled for repair (CSP): {csp_start}<br>Workers: {csp_emps}<br><br>Scheduled for repair (LP): {lp_start}<br>Workers: Entire Workforce<extra></extra>'
         else:
             hovertemplate = f'Segment ID: {id_pipe}<br>Predicted condition: %{{customdata}}<extra></extra>'
 
