@@ -1,48 +1,113 @@
-from pulp import LpProblem, LpVariable, lpSum
+import plotly.figure_factory as ff
+import pandas as pd
+from scheduler.workforce import tasks, employees
+from datetime import date, time, datetime, timedelta
+from pulp import LpProblem, LpMaximize, LpVariable, lpSum
 
-from scheduler.workforce import employees, tasks
+
+DAYS_INDICES = {
+    'Monday': 0,
+    'Tuesday': 1,
+    'Wednesday': 2,
+    'Thursday': 3,
+    'Friday': 4,
+    'Saturday': 5,
+    'Sunday': 6,
+}
+
+
+def get_next_monday() -> datetime:
+    today = date.today()
+    delta = 7 - today.weekday()
+    return datetime.combine(today + timedelta(days=delta), time(hour=0, minute=0))
+
+
+def plot(task_blocks_df: pd.DataFrame) -> None:
+    next_monday = get_next_monday()
+
+    plot_df_dict = [
+        dict(
+            Task='Entire Workforce',
+            Start=next_monday + timedelta(days=int(row['Block'] // 24), hours=int(row['Block'] % 24)),
+            Finish=next_monday + timedelta(days=int(row['Block'] // 24), hours=int(row['Block'] % 24 + 1)),
+            Resource=f"Task {row['Task']}",
+        )
+        for _, row in task_blocks_df.iterrows()
+    ]
+
+    fig = ff.create_gantt(
+        pd.DataFrame(plot_df_dict),
+        title="Schedule",
+        group_tasks=True,
+        show_colorbar=True,
+        index_col="Resource",
+    )
+    fig.update_layout(
+        xaxis={"rangeselector": {"visible": False}},
+        xaxis_range=[
+            next_monday.strftime("%Y-%m-%d"),
+            (next_monday + timedelta(days=6)).strftime("%Y-%m-%d"),
+        ],
+    )
+    fig.show()
 
 
 if __name__ == "__main__":
-    prob = LpProblem()
+    hours_of_day = [
+        datetime.combine(date.today() + timedelta(days=day_delta), time(hour=hour_delta))
+        for day_delta in range(7)
+        for hour_delta in range(24)
+    ]
 
-    # Define binary variables for each task and worker
-    schedule = LpVariable.dicts(
-        "Schedule",
-        [
-            (task.id, emp.name)
-            for task in tasks
-            for emp in employees
-        ],
-        cat="Binary",
-    )
+    schedule_df = pd.DataFrame({'slot': hours_of_day})
+    schedule_df['availability'] = 0
 
-    # Define the objective function
-    prob += lpSum(
-        task.n_work_hours * schedule[(task.id, emp.name)]
-        for task in tasks
-        for emp in employees
-    )
-
-    # Constraints: Each task must be assigned to exactly one worker
-    for task in tasks:
-        prob += lpSum(schedule[(task.id, emp.name)] for emp in employees) == 1
-
-    # Constraints: Workers cannot exceed their working hours, assuming that their schedule is flexible
+    hours = [0] * 24 * 7
     for emp in employees:
-        prob += lpSum(
-            task.n_work_hours * schedule[(task.id, emp.name)]
-            for task in tasks
-        ) <= len(emp.hours)
+        for day in emp.hours.keys():
+            for hour in emp.hours.get(day, []):
+                day_idx = DAYS_INDICES[day]
+                if day_idx == 0:
+                    hours[hour] += 1
+                else:
+                    hours[hour + day_idx * 24] += 1
 
-    # Constraint: Workers require supervisor on site
-    for task in tasks:
-        supervisor_assigned = False
-        for emp in employees:
-            if emp.role == 'Supervisor':
-                supervisor_assigned = supervisor_assigned or schedule[(task.id, emp.name)]
-        prob += supervisor_assigned == 1
+    schedule_df['availability'] = hours
+
+    tasks_df = pd.DataFrame(tasks)
+
+    s = list(tasks_df['priority'])
+    d = list(tasks_df['n_work_hours'])
+    b = list(schedule_df['availability'])
+
+    B = len(b)
+    n = len(s)
+    A = sum(b)
+
+    prob = LpProblem("Schedule", LpMaximize)
+    y = LpVariable.dicts('Block', [(i, t) for i in range(n) for t in range(B)], cat='Binary')
+    prob += lpSum(s[i] * b[t] * y[(i, t)] for i in range(n) for t in range(B))
+
+    # Constraints
+    prob += lpSum(y[(i, t)] for i in range(n) for t in range(B)) <= A  # Total assigned hours
+
+    for i in range(n):
+        prob += lpSum(y[(i, t)] for t in range(B)) <= d[i]  # Task duration
+
+    for t in range(B):
+        prob += lpSum(y[(i, t)] for i in range(n)) <= schedule_df['availability'][t]  # Max tasks per slot
 
     prob.solve()
 
-    print(prob.objective)
+    tasks_blocks = pd.DataFrame(columns=['Task', 'Block'])
+
+    for i in range(n):
+        for t in range(B):
+            if y[(i, t)].varValue == 1:
+                tasks_blocks = pd.concat([tasks_blocks, pd.DataFrame({'Task': [i], 'Block': [t]})], ignore_index=True)
+
+    tasks_blocks['Task'] = tasks_blocks['Task'].astype(int)
+    tasks_blocks['Block'] = tasks_blocks['Block'].astype(int)
+    tasks_blocks = tasks_blocks.sort_values(by='Task')
+
+    plot(tasks_blocks)
