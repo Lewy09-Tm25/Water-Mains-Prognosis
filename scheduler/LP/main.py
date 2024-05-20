@@ -1,10 +1,11 @@
-import plotly.figure_factory as ff
-import pandas as pd
-from scheduler.workforce import tasks, employees
-from datetime import date, time, datetime, timedelta
-from pulp import LpProblem, LpMaximize, LpVariable, lpSum, PULP_CBC_CMD
+from datetime import date, datetime, time, timedelta
 from time import perf_counter
 
+import pandas as pd
+import plotly.figure_factory as ff
+from pulp import PULP_CBC_CMD, LpMaximize, LpProblem, LpVariable, lpSum
+
+from scheduler.workforce import employees, tasks
 
 DAYS_INDICES = {
     'Monday': 0,

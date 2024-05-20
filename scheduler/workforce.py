@@ -1,8 +1,9 @@
 import random
-import pandas as pd
 from pathlib import Path
-from scheduler.core import Employee, HourlyTask, Task
 
+import pandas as pd
+
+from scheduler.core import Employee, HourlyTask, Task
 
 employees = [
     Employee(

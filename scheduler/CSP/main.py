@@ -1,12 +1,8 @@
-import numpy as np
-from csp import (
-    CSP,
-    TravelConstraint,
-    SupervisorConstraint,
-    WeatherConstraint,
-)
-from plot import plot
 import time
+
+import numpy as np
+from csp import CSP, SupervisorConstraint, TravelConstraint, WeatherConstraint
+from plot import plot
 
 from scheduler.core import Timetable
 from scheduler.workforce import employees, hourly_tasks, tasks
@@ -20,11 +16,11 @@ constraints = [
     TravelConstraint(employees=employees),
 ]
 
+
 def _run_scheduling_process():
     tt = Timetable.from_employee_list(employees=employees)
     csp = CSP(time_table=tt, constraints=constraints)
-    result_schedule = csp.solve(hourly_tasks=hourly_tasks, tasks=tasks).array
-    return result_schedule
+    return csp.solve(hourly_tasks=hourly_tasks, tasks=tasks).array
 
 
 if __name__ == "__main__":
