@@ -5,6 +5,7 @@ import pandas as pd
 import plotly.figure_factory as ff
 from pulp import PULP_CBC_CMD, LpMaximize, LpProblem, LpVariable, lpSum
 
+from scheduler.core import save_gantt_chart_tasks
 from scheduler.workforce import employees, tasks
 
 DAYS_INDICES = {
@@ -24,21 +25,11 @@ def get_next_monday() -> datetime:
     return datetime.combine(today + timedelta(days=delta), time(hour=0, minute=0))
 
 
-def plot(task_blocks_df: pd.DataFrame) -> None:
+def plot(schedule: list) -> None:
     next_monday = get_next_monday()
 
-    plot_df_dict = [
-        dict(
-            Task='Entire Workforce',
-            Start=next_monday + timedelta(days=int(row['Block'] // 24), hours=int(row['Block'] % 24)),
-            Finish=next_monday + timedelta(days=int(row['Block'] // 24), hours=int(row['Block'] % 24 + 1)),
-            Resource=f"Task {row['Task']}",
-        )
-        for _, row in task_blocks_df.iterrows()
-    ]
-
     fig = ff.create_gantt(
-        pd.DataFrame(plot_df_dict),
+        schedule,
         title="Schedule",
         group_tasks=True,
         show_colorbar=True,
@@ -128,4 +119,19 @@ if __name__ == "__main__":
     # print(f"Average execution time over {n_runs} runs: {average_time:.6f} seconds")
 
     tasks_blocks = _run_scheduling_process()
-    plot(tasks_blocks)
+
+    next_monday = get_next_monday()
+
+    schedule = [
+        dict(
+            Task='Entire Workforce',
+            Start=next_monday + timedelta(days=int(row['Block'] // 24), hours=int(row['Block'] % 24)),
+            Finish=next_monday + timedelta(days=int(row['Block'] // 24), hours=int(row['Block'] % 24 + 1)),
+            Resource=f"Task {row['Task']}",
+        )
+        for _, row in tasks_blocks.iterrows()
+    ]
+
+    plot(schedule)
+
+    save_gantt_chart_tasks(schedule)

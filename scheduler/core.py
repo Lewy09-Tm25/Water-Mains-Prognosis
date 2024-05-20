@@ -1,7 +1,10 @@
+import math
+from datetime import datetime
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from itertools import count
-from typing import Generator, Literal
+from typing import TypedDict,Generator, Literal
+import pickle
 
 import numpy as np
 
@@ -59,7 +62,11 @@ class Segment:
     material: str
     diameter: int
     length: int
-    preasure: float
+    priority: float
+    survival_rate_25: float
+    survival_rate_50: float
+    csp_scheduled_time_slot: tuple
+    csp_scheduled_employees: list
 
 
 @dataclass
@@ -74,3 +81,16 @@ class Constraint(ABC):
         An abstract method to test if the constraint holds.
         """
         pass
+
+
+class PlotlyGanttChartTask(TypedDict):
+    Task: str
+    Start: datetime
+    End: datetime
+    Resource: str
+
+
+def save_gantt_chart_tasks(tasks: list[PlotlyGanttChartTask]) -> None:
+    filehandler = open('scheduled_tasks.pkl', 'wb')
+    pickle.dump(tasks, filehandler)
+    filehandler.close()
