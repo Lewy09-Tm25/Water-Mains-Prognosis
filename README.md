@@ -17,6 +17,15 @@ Use Python version >= 3.8 and run `pip install -r requirements.txt`.
 ├── scheduler/  # CSP and LP schedulers
 ```
 
+## Demo
+- Run `map/main.py`
+- This will generate the Plotly map that contains all prone-to-breakage pipes with assigned properties to them
+
+## Machine Learning and Survival Analysis
+- Run `prediction_and_survival/ML.py` and `prediction_and_survival/SA.py`
+- This will write the CSV output file in the `data/` folder
+
+
 ## Task schedulers
 - `/scheduler/workforce.py` defines employees with work hours and tasks to be scheduled
 - The output of the scheduling tasks are interactive gantt charts that open in a new browser window
